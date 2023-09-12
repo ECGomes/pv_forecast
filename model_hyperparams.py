@@ -5,7 +5,7 @@ import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 
 
-def parameter_sweep_xgb(train_x, train_y, val_x, val_y, n_trials=100):
+def parameter_sweep_xgb(train_x, train_y, val_x, val_y, n_trials=100, seed=None):
     # First do a parameter sweep with Optuna
     def create_model(trial):
         # Do search for n_estimators, max_depth, reg_alpha and reg_lambda
@@ -40,7 +40,11 @@ def parameter_sweep_xgb(train_x, train_y, val_x, val_y, n_trials=100):
 
         return metrics_val
 
-    study = optuna.create_study(direction='minimize')
+    sampler = None
+    if seed is not None:
+        sampler = optuna.samplers.TPESampler(seed=seed)
+
+    study = optuna.create_study(direction='minimize', sampler=sampler)
     study.optimize(create_objective, n_trials=n_trials, show_progress_bar=True)
 
     return study
